@@ -8,7 +8,7 @@ Little helper class for the new Twitch API described in current [Twitch API docs
 [![Dependency Status](https://gemnasium.com/badges/github.com/Jaid/twitch-helix.svg)](https://gemnasium.com/github.com/Jaid/twitch-helix)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/Jaid/twitch-helix/master/license.txt)
 
-:warning: This module is instable and incomplete. Feel free to contribute by creating [issues](https://github.com/Jaid/twitch-helix/issues) and [pull requests](https://github.com/Jaid/twitch-helix/pulls).
+Feel free to contribute by creating [issues](https://github.com/Jaid/twitch-helix/issues) and [pull requests](https://github.com/Jaid/twitch-helix/pulls).
 
 ## Installation
 
@@ -23,6 +23,8 @@ yarn add twitch-helix
 ```
 
 ## Library Usage
+
+#### Example
 
 Import the default class from this package and feed its constructor with a client ID and a client secret. You can generate those in your [Twitch Developers Dashboard](https://dev.twitch.tv/dashboard/apps).<br>
 Try it out on [RunKit](https://npm.runkit.com/twitch-helix)!
@@ -41,6 +43,56 @@ twitchApi.getTwitchUserByName("nightbot").then(twitchUser => {
 })
 ```
 
+#### Construction
+
+TwitchHelix is a class and you need to create an instance with:
+
+```jsx
+new TwitchHelix(options)
+```
+
+The options parameter is an object and can have following fields:
+
+Field|Info|Default value
+---|---|---
+`clientId`|Client ID of your Twitch app|:no_entry_sign: (required)
+`clientSecret`|Client secret of your Twitch app|:no_entry_sign: (required)
+`prematureExpirationTime`|Time in ms for the access token to expire before it is meant to|`10000`
+`autoAuthorize`|Will call automatically call authorize() when needed|`true`
+`smartRetry`|Will retry Twitch API requests up to 10 times if the server response is invalid|`true`
+
+#### Implemented queries
+
+Some of the common queries are wrapped into neat functions. Those are:
+
+- Promise `getTwitchUserByName(username: string)` returns a Twitch user info object (as shown in above example)
+- Promise `getTwitchUsersByName(usernames: Array<string>)` returns an array of Twitch user info objects
+- Promise `getStreamInfoById(id: string)` returns a Twitch stream object if user is currently streaming or `null` otherwise
+- Promise `getStreamInfoByUsername(username: string)` returns a Twitch stream object if user is currently streaming or `null` otherwise
+- Promise `getFollowDate(streamerId: string, followerId: string)` returns a `Date` if follower follows streamer or `null` otherwise
+
+#### Custom queries
+
+You may need custom queries for retrieving data that is not wrapped into a function yet. Feel free to do so. Some API endpoints are still not implemented by Twitch in Helix API, so you can also use [Kraken v5 API](https://dev.twitch.tv/docs/v5).
+
+```jsx
+const helixQueryData = twitchApi.sendHelixRequest("users?login=nightbot&login=moobot")
+const krakenQueryData = twitchApi.sendApiRequest("users?login=nightbot,moobot", {api: "kraken"})
+```
+
+#### Events
+
+You can listen to some events.
+```jsx
+twitchApi.on(eventName, eventHandler)
+```
+
+Event name|Parameters|Description
+---|---|---
+`log-info`|`message`|Emitted on INFO log messages
+`log-warn`|`message`|Emitted on WARN log messages
+`log-error`|`message`|Emitted on ERROR log messages
+
 ## Command Line Usage
 
 Here is an example:
@@ -49,17 +101,4 @@ node_modules/.bin/twitch-helix --client-id xxx --client-secret xxx "users?login=
 ``` 
 
 This will print:
-```
-info:    200 OK (119/120 requests remaining for 56 seconds)
-data: 
-  - 
-    id:                19264788
-    login:             nightbot
-    display_name:      Nightbot
-    type:              
-    broadcaster_type:  partner
-    description:       A chat moderator bot for Twitch. Visit https://nightbot.tv for more info.
-    profile_image_url: https://static-cdn.jtvnw.net/jtv_user_pictures/nightbot-profile_image-2345338c09b4d468-300x300.png
-    offline_image_url: https://static-cdn.jtvnw.net/jtv_user_pictures/nightbot-channel_offline_image-71fd41fb8f4b34a3-1920x1080.png
-    view_count:        799442
-```
+[![Command Line Output](https://i.imgur.com/PTdBOQW.png)](https://i.imgur.com/PTdBOQW.png)

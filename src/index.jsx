@@ -2,35 +2,40 @@ import EventEmitter from "events"
 import lodash from "lodash"
 import request from "requestretry"
 
-module.exports = class TwitchHelix {
+module.exports = class TwitchHelix extends EventEmitter {
 
     constructor(options) {
+        super()
         if (lodash.isEmpty(options)) {
             throw new Error("TwitchHelix constructor needs options object as first argument")
         }
-        const requiredOptions = ["clientId", "clientSecret"]
-        for (const requiredOption of requiredOptions) {
+        const credentialOptions = ["clientId", "clientSecret"]
+        // Ensure credentials are set
+        for (const requiredOption of credentialOptions) {
             if (!options[requiredOption]) {
                 throw new Error(`Required TwitchHelix option ${requiredOption} is ${options[requiredOption]}`)
             }
         }
-        this.options = Object.assign(options, {
+        // Ensure credentials are not "xxx"
+        for (const requiredOption of credentialOptions) {
+            if (options[requiredOption].match(/^x+$/i)) {
+                throw new Error(`Option ${requiredOption} is ${options[requiredOption]} which looks like a placeholder value (You can generate real credential values in your Twitch Developers Dashboard)`)
+            }
+        }
+        // Setting default options
+        this.options = {
             prematureExpirationTime: 10000,
             autoAuthorize: true,
-            smartRetry: true
-        })
+            smartRetry: true,
+            ...options
+        }
         this.accessToken = null
-        this.refreshToken = null
+        this.refreshToken = null // TODO Implement autoRefresh
         this.tokenExpiration = null
-        this.eventEmitter = new EventEmitter()
-    }
-
-    on = (type, handler) => {
-        this.eventEmitter.on(type, handler)
     }
 
     log = (level, message) => {
-        this.eventEmitter.emit("log-" + level, message)
+        this.emit("log-" + level, message)
     }
 
     authorize = () => new Promise((resolve, reject) => {
